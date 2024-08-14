@@ -1,12 +1,18 @@
 from sqlite3 import DatabaseError
 from typing import Optional
-from fastapi import FastAPI, Response, status, HTTPException
+from fastapi import FastAPI, Response, status, HTTPException, Depends
 from fastapi.background import P
 from pydantic import BaseModel
 from random import randrange
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
+from . import models
+from .database import engine, SessionLocal
+from sqlalchemy.orm import Session
+import logging
+
+
 '''
 CRUD - Create Read Updte Delete
 This is an acronym that represents the 4 main functions of an APPlication. So any application regardless of how it's created it should be able to create things, Read thingsm Update things. and Delete things
@@ -18,6 +24,21 @@ READ    ->  GET       /posts/:id  @app.get("/posts/{id}")
 UPDATE  ->  PUT/PATCH /posts/:id  @app.put("/posts/{id}")
 DELETE  ->  DELETE    /posts/:id  @app.delete("/posts/{id}")
 '''
+
+app = FastAPI()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.info("Creating all tables in the database...")
+models.Base.metadata.create_all(bind=engine)
+logger.info("All tables created successfully.")
+
+# Dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 class Post(BaseModel):
   title: str
@@ -31,13 +52,15 @@ while True:
     conn = psycopg2.connect(host='localhost', database='fastapi', user='postgres', password='spectra', cursor_factory=RealDictCursor)
     cursor = conn.cursor()
     print("Database connection was succesful!")
+    logger.info("Connected")
     break
   except Exception as err:
     print("Connecting to Database Failed")
     print(f"Error: {err}")
     time.sleep(2)
 
-app = FastAPI()
+
+
 
 my_posts =  [
   {"title":"title of post 1", "content":"content of post 1", "id":1},
@@ -48,6 +71,11 @@ def find_post(id):
   for p in my_posts:
     if p["id"] == id:
       return p
+
+@app.get('/sqlalchemy')
+def test_post(db: Session = Depends(get_db)):
+  return {"satus":"success"}
+
 
 @app.get("/posts")
 def posts():
@@ -104,3 +132,7 @@ def update_post(id: int, post: Post, status_code=status.HTTP_200_OK):
   my_posts[index] = post_dict
   return {"data": post_dict}
   pass
+
+# if __name__ == "__main__":
+#   import uvicorn
+#   uvicorn.run(app)
