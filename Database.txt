@@ -14,91 +14,18 @@ SQL SERVER
 + NoSQL
 MangoDB
 DynamoDB
-ORACLE
-SQL SERVER
 
-Relational Database & SQL
- Structured Query Language(SQL) - Language used to communicate with DBMS
- +
- ME   ->    SQL   ->    DBMS    -> Database
- +
+Schemas and Pydantic model
+they ensure a request and response are shaped in a specific way
 
- Tables
- A table represend a subject or event in an application. A table is made up of columns and rows. Each column represents a different attribute, and each row represents a different entry in the table
-  Databases have datatypes just like any programming Language
-
-  Data types    POSTGRESQL            Python
-  Numeric       Int,decimal,precision Int,float
-  Text          Varchar, Text         string
-  bool          boolean               boolean
-  sequence      array                 list
-
-Primary Key
-This is a column or group of columns that uniquely identifies each row in a table
-Table can have one and only one primary Key
-E.g id    name      email
-    1     spectra   alex@gmail.com
-    2     gee       alex@gmail.com
-    3     alex      alex@gmail.com
-So as you can see each entry is unique no Duplicates in the ID column(Primary Key). your primary key doesn't have to be the ID column the EMAIL column can also be a primary key too(e.g phonenumbers, ssn)
-Note: We can only have one primary key on a table
-
-Unique Constraints
-A UNIQUE constraints can be applied to any column to make sure every record has a unique value for that column
-E.g ID    NAME
-    1     spectra
-    2     mera
-    3     spectra
-
-No duplicates allowed each record has a unique value for that column
-
-NULL Constraints 
-By default, when adding a new entry to a database, any column can be left blank. When a column is left blank, it has a null value
-If you need column to be properly filled in to create a new record, a NOT NULL constraint can be added to the column to ensure that the column is never left blank
+'''
+CRUD - Create Read Updte  Delete
+This is an acronym that represents the 4 main functions of an APPlication. So any application regardless of how it's created it should be able to create things, Read thingsm Update things. and Delete things
 
 
-SQL
-SELECT * FROM products;
-Returns all data in the products table
-
-Capitalization
-SQL doesn't care about capitalization
-select * from products
-
-Types of words SQL
-SQL specific keyword - part of sql syntax
-user provided information - Keywords provided by a user
-
-SQL BASIC FILTERING WITH 'where'
-SELECT * FROM products WHERE id=6;
-
-SQL OPERATORS
-
-ORDER & SORT
-SELCT * FROM products ORDER BY price ASC(DESC for descending)
-
-INSERTING Data
-INSERT INTO products (name, price, inventory) VALUES ('Spectra Bag', 4, 1000);
-
-Output: 
-INSERT 0 1
-
-Query returned successfully in 97 msec.
-
-Returning back all the data
-INSERT INTO products (name, price, inventory) VALUES ('Spectra Bag', 4, 1000);
-select * from products where name =  'Spectra Bag';
-
-use can also pass the returning keyword
-INSERT INTO products (name, price, inventory) VALUES ('Spectra Bag', 4, 1000) returning *;
-
-Inserting Multiple Items
-INSERT INTO products (name, price, inventory) VALUES ('Spectra Bag', 4, 1000), ('laptop', 50, 25), ('cheese', 60, 5) returning *;
-Returning specific data
-INSERT INTO products (name, price, inventory) VALUES ('Spectra Bag', 4, 1000), ('laptop', 50, 25), ('cheese', 60, 5) returning id, created_at, name;
-
-SQL updating Rows
-update products SET name = 'pencils', price=40 WHERE id=5 returning *
-updating multiple rows
-update products SET is_sale = false WHERE id < 5 returning *
-Note: i used a conditional operator
+CREATE  ->  POST      /posts      @app.post("/post")
+READ    ->  GET       /posts/:id  @app.get("/posts/{id}")
+            GET       /posts      @app.get("/posts")
+UPDATE  ->  PUT/PATCH /posts/:id  @app.put("/posts/{id}")
+DELETE  ->  DELETE    /posts/:id  @app.delete("/posts/{id}")
+'''

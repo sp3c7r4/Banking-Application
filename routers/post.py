@@ -1,41 +1,7 @@
-from sqlite3 import DatabaseError
-from urllib import response
-from typing_extensions import deprecated
-from fastapi import FastAPI
-from sqlalchemy.exc import SQLAlchemyError
-from fastapi.background import P
-from pydantic import BaseModel
-from random import randrange
-import psycopg2
-from psycopg2.extras import RealDictCursor
-import time
-from database import engine, get_db
-from sqlalchemy.orm import Session
-import schemas
-import models
-from routers import post, user
-from sqlalchemy.orm import Session
-from fastapi import FastAPI, Response, status, HTTPException, Depends, APIRouter
-from ..database import get_db
-from typing import List
-from sqlalchemy.orm import Session
-from fastapi import FastAPI, Response, status, HTTPException, Depends, APIRouter
-from ..database import get_db
+from  ..banking import schemas, models
 
 
-app = FastAPI()
-models.Base.metadata.create_all(bind=engine)
-
-while True:
-  try:
-    conn = psycopg2.connect(host='localhost', database='fastapi', user='postgres', password='spectra', cursor_factory=RealDictCursor)
-    cursor = conn.cursor()
-    print("Database connection was succesfuld!")
-    break
-  except Exception as err:
-    print("Connecting to Database Failed")
-    print(f"Error: {err}")
-    time.sleep(2)
+app = APIRouter()
 
 @app.get("/posts", response_model=List[schemas.Post])
 def posts(db: Session = Depends(get_db)):
@@ -110,6 +76,3 @@ def update_post(id: int, posts: schemas.PostCreate, db: Session = Depends(get_db
   # post_dict['id'] = id
   # my_posts[index] = post_dict
   return  index
-
-
-
