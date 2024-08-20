@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 
@@ -25,3 +26,14 @@ class UserCreate(BaseModel):
 class UserOut(BaseModel):
   id: int
   email: EmailStr
+
+class UserLogin(BaseModel):
+   email: EmailStr
+   password: Optional[str] = 'me'
+
+class Token(BaseModel):
+   access_token: str
+   token_type: str
+
+class TokenData(BaseModel):
+   id: Optional[str] = None

@@ -1,0 +1,89 @@
+Authentication
+Session based Authentication & JWT based authentication
+
+Session based Authentication
+  We store something on the backend server database or memory to keep tract if the user is logged in and when the user is logged out
+JWT Token based authentication
+  The idea behind the JWT Based Authentication is that it's stateless(i.e nothing is stored on the backend or api for authorization). Not tracking whether a user is logged in or logged out
+
+
+JWT TOKEN Authentication
+
+1. Anytime a user login
+        /login(username+password)
+CLIENT ----------------------------> API(If credentials are valid sign JWT Token) eykdk.dddimkd.dddd
+
+2. A response Token is sent from the API server
+              Response{Token}
+CLIENT <---------------------------- API
+
+3. Anytime a user needs to access a specific endpoint he will send the endoint with the TOKEN in the header of a request
+
+           /POSTS{TOKEN}
+CLIENT ----------------------------> API(Verify if token is valid)
+          If the token is valid
+                Data
+CLIENT <---------------------------- API
+
+JWT Deep Dive
+JWT isn't encrypted
+
+Header    =>  {eyJBNSJbsjbjBjbkBKAJBSKbaKJbjaksKJB}.  
+Payload   =>  {eyKLNnlknsLNzALNLAnlNLANSLKAnkNLDKSNkndw7J}.
+Signature =>  {Sjfdnjnsdkfjkdbsfjsbdkjbfkdjb}
+
+Header[MetaData]
+{
+  "alg":"HS256, Algorithm used in hashing the token
+  "typ":"JWT"   Type of token
+}
+
+Payload(Our Data, our piece of information)
+{
+  "sub":"1234567890",
+  "name":"John Doe",
+  "lat": 1516239022
+}
+Note: BE careful with what you put inside the token because JWT isn't encrypted it can be decoded by anyone
+
+Verify Signature
+
+HMACSHA256(
+  base64UrlEncode(header) + "." +
+  base64UrlEncode(payload).
+  [ your-256-bit-secret ]
+) secret base64 encoded
+
+Purpose of Signature
+
+Signature
+This is the combination of 3 things [Header, Payload(User Data), Secret]
+
+After generating the Signature, it's then taken with the Header and Payload to generate a token
+
+Header+Signature+Payload => Token
+Header+Payload+Secret => Signature
+
+So what if the Hacker alters the Payload
+Remember the signature in the JWT token was being generated using Header+payload+secret which means when a request i s being sent to the Api server it will take the Header+Payload then the secret key that resides in the Api server the generate a "Test Signature". If that doesn't match with the Signature
+
+Test Signature =/= Signaature 
+
+it Will cause an error
+
+Note: WIthout the hacker having a secret key. a new signature cant be generated
+
+
+Login Process Flow
+1. User logs in with a plain email & password
+
+          /login{email, Password}       Find User by email
+CLIENT --------------------------> API ------------------------>DB
+                                        USer{password(Hashed)}
+       -------------------------->     <----------------------DB
+                                        hash(password) = Hashedpassword
+
+2. To verify if the bassword is same we hash it again then compare with the hashed password. and if they're equal that means the password the've provided us is the correct password
+
+JWT Library
+pip install python-jose[cryptography]

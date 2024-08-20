@@ -1,26 +1,19 @@
-from sqlite3 import DatabaseError
-from urllib import response
-from typing_extensions import deprecated
 from fastapi import FastAPI
 from sqlalchemy.exc import SQLAlchemyError
-from fastapi.background import P
-from pydantic import BaseModel
-from random import randrange
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
 from database import engine, get_db
 from sqlalchemy.orm import Session
+from database import get_db
 import schemas
 import models
-from routers import post, user
 from sqlalchemy.orm import Session
-from fastapi import FastAPI, Response, status, HTTPException, Depends, APIRouter
-from ..database import get_db
+from fastapi import FastAPI, Response, status, HTTPException, Depends
+from database import get_db
 from typing import List
-from sqlalchemy.orm import Session
-from fastapi import FastAPI, Response, status, HTTPException, Depends, APIRouter
-from ..database import get_db
+import utils, oauth2
+from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 
 
 app = FastAPI()
@@ -111,5 +104,44 @@ def update_post(id: int, posts: schemas.PostCreate, db: Session = Depends(get_db
   # my_posts[index] = post_dict
   return  index
 
+@app.post('/users', status_code=status.HTTP_201_CREATED, response_model=schemas.UserOut)
+def create_user(user: schemas.UserCreate,db: Session = Depends(get_db)):
+  try:
+    new_user = models.User(email=user.email,password=utils.hash(user.password))
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
+  except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error occurred")
+
+@app.get("/users/{id}", response_model=schemas.UserOut, status_code=status.HTTP_200_OK)
+def get_user(id: int, db: Session = Depends(get_db)):
+    getting = db.query(models.User).filter(models.User.id == id)
+    getting_ok = getting.first()
+    if not getting_ok:
+      raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error occurred")
+    return getting_ok
+
+@app.post('/login')
+def login(user_credentials: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+  fst_query = db.query(models.User).filter(models.User.email == user_credentials.username)
+  fst_query_first = fst_query.first()
+  # return fst_query_first
+  if not fst_query_first:
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Incorrect Email")
+  if not utils.verify(user_credentials.password, fst_query_first.password):
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Incorrect Password")
+  
+  access_token = oauth2.create_access_token(data={"user_id": fst_query_first.id})
+  
+  # me = utils.verify(user_credentials, str(querys))
+  return {"access_token":access_token, "token_type":"bearer"}
+  
 
 
+
+
+
+ 
